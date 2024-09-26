@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 import Markdown from "react-markdown";
+import { BorderBeam } from "./magicui/border-beam";
 
 interface Props {
   title: string;
@@ -40,12 +41,14 @@ export function ProjectCard({
   links,
   className,
 }: Props) {
+
   return (
     <Card
       className={
-        "flex flex-col overflow-hidden border hover:shadow-lg transition-all duration-300 ease-out h-full"
+        "relative flex flex-col overflow-hidden border hover:shadow-lg transition-all duration-300 ease-out h-full"
       }
     >
+      <BorderBeam />
       <Link
         href={href || "#"}
         className={cn("block cursor-pointer", className)}

@@ -5,8 +5,8 @@ import Link from "next/link";
 interface Props {
   title: string;
   description: string;
-  dates: string;
-  location: string;
+  dates?: string;
+  location?: string;
   image?: string;
   links?: readonly {
     icon: React.ReactNode;
