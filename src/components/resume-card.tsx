@@ -18,6 +18,7 @@ interface ResumeCardProps {
   badges?: readonly string[];
   period?: string;
   description?: string;
+  isOpen?: boolean;
 }
 export const ResumeCard = ({
   logoUrl,
@@ -28,8 +29,9 @@ export const ResumeCard = ({
   badges,
   period,
   description,
+  isOpen = false,
 }: ResumeCardProps) => {
-  const [isExpanded, setIsExpanded] = React.useState(false);
+  const [isExpanded, setIsExpanded] = React.useState(isOpen);
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     if (description) {
@@ -75,7 +77,7 @@ export const ResumeCard = ({
                 )}
                 <ChevronRightIcon
                   className={cn(
-                    "size-4 translate-x-0 transform opacity-0 transition-all duration-300 ease-out group-hover:translate-x-1 group-hover:opacity-100",
+                    "size-4 translate-x-0 transform opacity-100 transition-all duration-300 ease-out group-hover:translate-x-1 group-hover:opacity-100",
                     isExpanded ? "rotate-90" : "rotate-0"
                   )}
                 />
