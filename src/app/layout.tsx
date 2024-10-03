@@ -55,9 +55,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <script defer data-domain="forevergareth.com" src="http://plausible.178.156.141.108.sslip.io/js/script.outbound-links.js"></script>
-      <script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>      
-      <body
+<script defer data-domain="forevergareth.com" src="http://plausible.178.156.141.108.sslip.io/js/script.outbound-links.js"></script>      <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased max-w-2xl mx-auto py-12 sm:py-24 px-6",
           fontSans.variable
