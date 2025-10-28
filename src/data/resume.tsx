@@ -8,7 +8,7 @@ export const DATA = {
   // location: "Orlando, FL",
   // locationLink: "https://www.google.com/maps/place/orlando",
   description:
-    "Software Engineer crafting immersive interactive experiences.",
+    "Software Engineer building games and services that people love.",
   summary:
     "Transitioning from software engineering to game development, I bring a unique blend of full-stack development expertise and a passion for creating engaging gameplay experiences. Currently exploring game systems, mechanics, and interactive storytelling while building my game development portfolio.",
   avatarUrl: "https://avatars.githubusercontent.com/u/11306782?v=4",
