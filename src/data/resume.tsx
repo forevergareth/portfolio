@@ -1,5 +1,5 @@
 import { Icons } from "@/components/icons";
-import { HomeIcon, NotebookIcon } from "lucide-react";
+import { GamepadIcon, HomeIcon, NotebookIcon } from "lucide-react";
 
 export const DATA = {
   name: "Gareth Thomas",
@@ -8,9 +8,9 @@ export const DATA = {
   // location: "Orlando, FL",
   // locationLink: "https://www.google.com/maps/place/orlando",
   description:
-    "Product-Focused Senior Software Engineer building products people love.",
+    "Software Engineer crafting immersive interactive experiences.",
   summary:
-    "As a software engineer with a solid background in full stack development, you will never catch me not building something new. In fact Im working on my third Startup product. I'll tell you about it soon!",
+    "Transitioning from software engineering to game development, I bring a unique blend of full-stack development expertise and a passion for creating engaging gameplay experiences. Currently exploring game systems, mechanics, and interactive storytelling while building my game development portfolio.",
   avatarUrl: "https://avatars.githubusercontent.com/u/11306782?v=4",
   // skills: [
   //   "React",
@@ -25,8 +25,9 @@ export const DATA = {
   //   "Java",
   // ],
   navbar: [
-    // { href: "/", icon: HomeIcon, label: "Home" },
-    // { href: "/blog", icon: NotebookIcon, label: "Blog" },
+    { href: "/", icon: HomeIcon, label: "Home" },
+    { href: "/blog", icon: NotebookIcon, label: "Blog" },
+    { href: "/projects", icon: GamepadIcon, label: "Projects" },
   ],
   contact: {
     email: "oforevergareth@gmail.com",

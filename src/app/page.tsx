@@ -9,12 +9,25 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { DATA } from "@/data/resume";
+import { getProjects } from "@/data/projects";
 import Link from "next/link";
 import Markdown from "react-markdown";
+import Image from "next/image";
 
 const BLUR_FADE_DELAY = 0.04;
 
-export default function Page() {
+export default async function Page() {
+  const projects = await getProjects();
+  const featuredProjects = projects
+    .sort((a, b) => {
+      if (
+        new Date(a.metadata.publishedAt) > new Date(b.metadata.publishedAt)
+      ) {
+        return -1;
+      }
+      return 1;
+    })
+    .slice(0, 3);
   return (
     <main className="flex flex-col min-h-[100dvh] space-y-10">
       <section id="hero">
@@ -51,53 +64,6 @@ export default function Page() {
             {DATA.summary}
           </Markdown>
         </BlurFade>
-      </section>
-      <section id="work">
-        <div className="flex min-h-0 flex-col gap-y-3">
-          <BlurFade delay={BLUR_FADE_DELAY * 5}>
-            <h2 className="text-xl font-bold">Currently</h2>
-          </BlurFade>
-          {DATA.work.filter((work) => work.isCurrent).map((work, id) => (
-            <BlurFade
-              key={work.company}
-              delay={BLUR_FADE_DELAY * 6 + id * 0.05}
-            >
-              <ResumeCard
-                key={work.company}
-                logoUrl={work.logoUrl}
-                altText={work.company}
-                title={work.company}
-                subtitle={work.title}
-                href={work.href}
-                badges={work.badges}
-                isOpen={work.isCurrent}
-                // period={`${work.start} - ${work.end ?? "Present"}`}
-                description={work.description}
-              />
-            </BlurFade>
-          ))}
-          <BlurFade delay={BLUR_FADE_DELAY * 5}>
-            <h2 className="text-xl font-bold mt-10">Previously</h2>
-          </BlurFade>
-          {DATA.work.filter((work) => !work.isCurrent).map((work, id) => (
-            <BlurFade
-              key={work.company}
-              delay={BLUR_FADE_DELAY * 6 + id * 0.05}
-            >
-              <ResumeCard
-                key={work.company}
-                logoUrl={work.logoUrl}
-                altText={work.company}
-                title={work.company}
-                subtitle={work.title}
-                href={work.href}
-                badges={work.badges}
-                // period={`${work.start} - ${work.end ?? "Present"}`}
-                description={work.description}
-              />
-            </BlurFade>
-          ))}
-        </div>
       </section>
       {/* <section id="education">
         <div className="flex min-h-0 flex-col gap-y-3">
@@ -138,81 +104,82 @@ export default function Page() {
       </section> */}
       <section id="projects">
         <div className="space-y-12 w-full py-12">
-          <BlurFade delay={BLUR_FADE_DELAY * 11}>
+          <BlurFade delay={BLUR_FADE_DELAY * 5}>
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <div className="inline-block rounded-lg bg-foreground text-background px-3 py-1 text-sm">
-                  Project Highlights
+                  Featured Projects
                 </div>
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">
-                  What have I worked on?
+                  Game Development Portfolio
                 </h2>
                 <p className="text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  I&apos;ve worked on a variety of projects, from simple
-                  websites to complex web applications. Here are some higlights.
+                  From gameplay systems to full game experiences, here are some of my featured projects
+                  showcasing my transition into game development.
                 </p>
               </div>
             </div>
           </BlurFade>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 max-w-[800px] mx-auto">
-            {DATA.projects.filter(item => item.active).map((project, id) => (
+          <div className="grid gap-6 max-w-4xl mx-auto">
+            {featuredProjects.map((project, id) => (
               <BlurFade
-                key={project.title}
-                delay={BLUR_FADE_DELAY * 12 + id * 0.05}
+                key={project.slug}
+                delay={BLUR_FADE_DELAY * 6 + id * 0.05}
               >
-                <ProjectCard
-                  href={project.href}
-                  key={project.title}
-                  title={project.title}
-                  description={project.description}
-                  dates={project.dates}
-                  tags={project.technologies}
-                  image={project.image}
-                  // video={project.video}
-                  links={project.links}
-                />
+                <Link
+                  href={`/projects/${project.slug}`}
+                  className="block group"
+                >
+                  <div className="flex flex-col md:flex-row gap-4 p-4 rounded-lg border hover:shadow-lg transition-all duration-300">
+                    {project.metadata.image && (
+                      <div className="w-full md:w-48 h-48 relative flex-shrink-0 overflow-hidden rounded-md">
+                        <Image
+                          src={project.metadata.image}
+                          alt={project.metadata.title}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                    )}
+                    <div className="flex-1 space-y-2">
+                      <div>
+                        <h3 className="text-xl font-semibold tracking-tight group-hover:text-primary transition-colors">
+                          {project.metadata.title}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          {project.metadata.publishedAt}
+                        </p>
+                      </div>
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {project.metadata.summary}
+                      </p>
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        {project.metadata.platform && (
+                          <Badge variant="secondary" className="text-xs">
+                            {project.metadata.platform}
+                          </Badge>
+                        )}
+                        {project.metadata.tools?.slice(0, 3).map((tool) => (
+                          <Badge key={tool} variant="outline" className="text-xs">
+                            {tool}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </Link>
               </BlurFade>
             ))}
           </div>
-        </div>
-      </section>
-      <section id="projects-2">
-        <div className="space-y-12 w-full py-12">
-          <BlurFade delay={BLUR_FADE_DELAY * 13}>
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <div className="inline-block rounded-lg bg-foreground text-background px-3 py-1 text-sm">
-                  Professional Projects
-                </div>
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">
-                  I like building things
-                </h2>
-                <p className="text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Throughout my 8-year career, I&apos;ve had the opportunity to work on a variety of exciting projects, 
-                transitioning from an Individual Contributor to a Technical Lead. Here are a few notable ones 
-                available in the public domain.
-                </p>
-              </div>
+          <BlurFade delay={BLUR_FADE_DELAY * 10}>
+            <div className="flex justify-center mt-8">
+              <Link
+                href="/projects"
+                className="inline-flex items-center justify-center rounded-lg bg-foreground text-background px-4 py-2 text-sm font-medium hover:opacity-90 transition-opacity"
+              >
+                View All Projects
+              </Link>
             </div>
-          </BlurFade>
-          <BlurFade delay={BLUR_FADE_DELAY * 14}>
-            <ul className="mb-4 ml-4 divide-y divide-dashed border-l">
-              {DATA.hackathons.map((project, id) => (
-                <BlurFade
-                  key={project.title}
-                  delay={BLUR_FADE_DELAY * 15 + id * 0.05}
-                >
-                  <HackathonCard
-                    title={project.title}
-                    description={project.description}
-                    // location={project.location}
-                    // dates={project.dates}
-                    image={project.image}
-                    links={project.links}
-                  />
-                </BlurFade>
-              ))}
-            </ul>
           </BlurFade>
         </div>
       </section>

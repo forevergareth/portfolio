@@ -1,0 +1,128 @@
+---
+title: "Saint Game Engine"
+publishedAt: "2025-05-24"
+summary: "A detailed example of how to structure your game development project documentation"
+image: "/img/saint-game-engine/saint-dev-03.png"
+platform: "Windows"
+tools: ["C++", "Vulkan", "Obj", "gLTF 2.0", "HLSL", "Cmake", "Tracy"]
+---
+
+<div style="width: 100%; margin-bottom: 2rem;">
+  <iframe
+    style="width: 100%; height: 500px; border-radius: 0.5rem; border: none;"
+    src="https://www.youtube.com/embed/4hRfkdYPPfg?si=BbfMcplXjSMDD67x"
+    title="Saint Game Engine Vulkan"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+    allowFullScreen
+  ></iframe>
+</div>
+
+## Overview
+
+This is a sample project structure based on best practices from game development portfolios. Your project should tell a compelling story about what you built, the challenges you faced, and the solutions you implemented.
+
+**Project Design Goals:**
+- Create engaging gameplay mechanics
+- Demonstrate technical proficiency in Unity/Unreal
+- Showcase problem-solving abilities
+- Document the development process
+
+
+The Sponza Atrium is a classic benchmark for testing global illumination, PBR (Physically Based Rendering), and general 3D engine performance. See how Saint 3D tackles it!
+
+<div style="width: 100%; margin-bottom: 2rem;">
+  <iframe
+    style="width: 100%; height: 500px; border-radius: 0.5rem; border: none;"
+    src="https://www.youtube.com/embed/U8fZbysNW98?si=K2cLzG7i4yn1zRoT"
+    title="Dungeon Delvers Gameplay"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+    allowFullScreen
+  ></iframe>
+</div>
+
+
+## Technical Implementation
+
+### Core Systems
+
+Describe the main systems you implemented:
+
+- **Player Controller**: Implemented responsive movement system with physics-based interactions
+- **AI System**: Created behavior trees for enemy NPCs with patrol, chase, and attack states
+- **Combat System**: Developed hit detection, damage calculation, and health management
+- **Save System**: Built persistent data management using JSON serialization
+
+### Gameplay Mechanics
+
+Detail specific mechanics you created:
+
+
+## Level Design
+
+Explain your approach to level design:
+
+- **Tutorial Level**: Introduced core mechanics gradually
+- **Pacing**: Balanced combat encounters with exploration
+- **Environmental Storytelling**: Used props and lighting to guide player
+
+## Challenges & Solutions
+
+### Challenge 1: Performance Optimization
+
+**Problem**: Frame rate dropped below 30fps with multiple enemies on screen.
+
+**Solution**: 
+- Implemented object pooling for frequently spawned objects
+- Optimized draw calls by batching similar materials
+- Used occlusion culling to reduce rendering overhead
+- Result: Maintained 60fps with 50+ active enemies
+
+### Challenge 2: AI Navigation
+
+**Problem**: Enemies getting stuck on obstacles during pathfinding.
+
+**Solution**:
+- Integrated Unity's NavMesh system
+- Added dynamic obstacle avoidance
+- Implemented fallback behaviors for edge cases
+
+## Results & Learnings
+
+**What Went Well:**
+- Successfully implemented all planned core features
+- Received positive feedback from playtesters
+- Learned advanced C# patterns and Unity best practices
+
+**Areas for Improvement:**
+- Could have planned better for scope creep
+- More time needed for audio implementation
+- Would benefit from earlier playtesting
+
+## Media
+
+[Include screenshots, GIFs, or video embeds here]
+
+![Gameplay Screenshot](/placeholder-screenshot.png)
+
+## Download & Links
+
+- [Play the Game](#) - Itch.io link
+- [Source Code](#) - GitHub repository
+- [Design Document](#) - Google Docs link
+
+---
+
+## Technical Blog Posts
+
+For detailed implementation guides on each system:
+
+1. [**Microservice Architecture for Live-Service Games**](/blog/microservice-architecture-for-games)
+2. [**Building Authentication with Steam & JWT**](/blog/authentication-steam-jwt)
+3. [**Real-Time Communication: REST vs TCP Sockets**](/blog/realtime-communication-unreal)
+4. [**Metagame Systems & Stripe Payment Integration**](/blog/metagame-monetization-stripe)
+5. [**Deploying Game Backends with Kubernetes**](/blog/kubernetes-deployment-game-backend)
+
+---
+
+*This project taught me valuable lessons about game systems architecture, the importance of playtesting, and how to scope features realistically for solo development.*
+
