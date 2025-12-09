@@ -17,26 +17,6 @@ Both needed to be **secure**, **fast**, and **session-persistent** so players do
 
 ## Architecture Overview
 
-```
-┌──────────────┐           ┌──────────────┐
-│    Steam     │           │    Custom    │
-│  (Steamworks)│           │ (Email/Pass) │
-└──────┬───────┘           └──────┬───────┘
-       │                          │
-       ▼                          ▼
-┌─────────────────────────────────────────┐
-│        Authentication Service (Go)       │
-│  ┌────────────────────────────────────┐ │
-│  │  Validate → Generate JWT → Cache   │ │
-│  └────────────────────────────────────┘ │
-└────────────────┬────────────────────────┘
-                 │
-                 ▼
-        ┌────────────────┐
-        │  Redis Cache   │
-        │  (Sessions)    │
-        └────────────────┘
-```
 
 ---
 
@@ -63,91 +43,10 @@ import (
 
 #### Step 2: Create Steam Auth Handler
 
-```go
-type AuthService struct {
-    db          *sql.DB
-    redis       *redis.Client
-    steamAPIKey string
-}
 
-func (s *AuthService) SteamLoginHandler(c *gin.Context) {
-    var req struct {
-        AuthTicket string `json:"auth_ticket"`
-    }
-    
-    if err := c.ShouldBindJSON(&req); err != nil {
-        c.JSON(400, gin.H{"error": "Invalid request"})
-        return
-    }
-    
-    // 1. Validate ticket with Steam
-    steamID, err := s.ValidateSteamTicket(req.AuthTicket)
-    if err != nil {
-        c.JSON(401, gin.H{"error": "Invalid Steam ticket"})
-        return
-    }
-    
-    // 2. Get or create player account
-    player, err := s.GetOrCreatePlayerBySteamID(steamID)
-    if err != nil {
-        c.JSON(500, gin.H{"error": "Failed to create account"})
-        return
-    }
-    
-    // 3. Generate JWT token
-    token, err := s.GenerateJWT(player.ID)
-    if err != nil {
-        c.JSON(500, gin.H{"error": "Failed to generate token"})
-        return
-    }
-    
-    // 4. Cache session in Redis
-    s.CacheSession(player.ID, token)
-    
-    c.JSON(200, gin.H{
-        "token": token,
-        "player": player,
-    })
-}
-```
 
 #### Step 3: Validate Steam Ticket
 
-```go
-func (s *AuthService) ValidateSteamTicket(ticket string) (string, error) {
-    // Call Steam WebAPI to validate ticket
-    url := fmt.Sprintf(
-        "https://api.steampowered.com/ISteamUserAuth/AuthenticateUserTicket/v1/"+
-        "?key=%s&appid=%s&ticket=%s",
-        s.steamAPIKey,
-        os.Getenv("STEAM_APP_ID"),
-        ticket,
-    )
-    
-    resp, err := http.Get(url)
-    if err != nil {
-        return "", err
-    }
-    defer resp.Body.Close()
-    
-    var result struct {
-        Response struct {
-            Params struct {
-                SteamID string `json:"steamid"`
-                Result  string `json:"result"`
-            } `json:"params"`
-        } `json:"response"`
-    }
-    
-    json.NewDecoder(resp.Body).Decode(&result)
-    
-    if result.Response.Params.Result != "OK" {
-        return "", errors.New("invalid ticket")
-    }
-    
-    return result.Response.Params.SteamID, nil
-}
-```
 
 ---
 
@@ -164,100 +63,9 @@ Not all players want to use Steam. Custom auth allows:
 
 #### Step 1: User Registration
 
-```go
-type RegisterRequest struct {
-    Email    string `json:"email" binding:"required,email"`
-    Password string `json:"password" binding:"required,min=8"`
-    Username string `json:"username" binding:"required,min=3"`
-}
-
-func (s *AuthService) RegisterHandler(c *gin.Context) {
-    var req RegisterRequest
-    if err := c.ShouldBindJSON(&req); err != nil {
-        c.JSON(400, gin.H{"error": "Invalid request"})
-        return
-    }
-    
-    // 1. Check if email already exists
-    exists, _ := s.db.EmailExists(req.Email)
-    if exists {
-        c.JSON(409, gin.H{"error": "Email already registered"})
-        return
-    }
-    
-    // 2. Hash password with bcrypt
-    hashedPassword, err := bcrypt.GenerateFromPassword(
-        []byte(req.Password),
-        bcrypt.DefaultCost,
-    )
-    if err != nil {
-        c.JSON(500, gin.H{"error": "Failed to hash password"})
-        return
-    }
-    
-    // 3. Create player record
-    player := &Player{
-        ID:           uuid.New().String(),
-        Email:        req.Email,
-        Username:     req.Username,
-        PasswordHash: string(hashedPassword),
-        CreatedAt:    time.Now(),
-    }
-    
-    if err := s.db.CreatePlayer(player); err != nil {
-        c.JSON(500, gin.H{"error": "Failed to create account"})
-        return
-    }
-    
-    // 4. Generate JWT and return
-    token, _ := s.GenerateJWT(player.ID)
-    s.CacheSession(player.ID, token)
-    
-    c.JSON(201, gin.H{
-        "token": token,
-        "player": player,
-    })
-}
-```
 
 #### Step 2: Login
 
-```go
-func (s *AuthService) LoginHandler(c *gin.Context) {
-    var req struct {
-        Email    string `json:"email"`
-        Password string `json:"password"`
-    }
-    
-    c.ShouldBindJSON(&req)
-    
-    // 1. Get player by email
-    player, err := s.db.GetPlayerByEmail(req.Email)
-    if err != nil {
-        c.JSON(401, gin.H{"error": "Invalid credentials"})
-        return
-    }
-    
-    // 2. Verify password
-    err = bcrypt.CompareHashAndPassword(
-        []byte(player.PasswordHash),
-        []byte(req.Password),
-    )
-    if err != nil {
-        c.JSON(401, gin.H{"error": "Invalid credentials"})
-        return
-    }
-    
-    // 3. Generate JWT
-    token, _ := s.GenerateJWT(player.ID)
-    s.CacheSession(player.ID, token)
-    
-    c.JSON(200, gin.H{
-        "token": token,
-        "player": player,
-    })
-}
-```
 
 ---
 
@@ -287,61 +95,10 @@ signature_here
 
 ### Generate JWT in Go
 
-```go
-import "github.com/golang-jwt/jwt/v5"
 
-type Claims struct {
-    PlayerID string `json:"player_id"`
-    Username string `json:"username"`
-    jwt.RegisteredClaims
-}
-
-func (s *AuthService) GenerateJWT(playerID string) (string, error) {
-    // Create claims
-    claims := Claims{
-        PlayerID: playerID,
-        Username: player.Username,
-        RegisteredClaims: jwt.RegisteredClaims{
-            ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
-            IssuedAt:  jwt.NewNumericDate(time.Now()),
-            Issuer:    "warzone-backend",
-        },
-    }
-    
-    // Create token
-    token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-    
-    // Sign with secret key
-    secretKey := os.Getenv("JWT_SECRET")
-    tokenString, err := token.SignedString([]byte(secretKey))
-    
-    return tokenString, err
-}
-```
 
 ### Validate JWT
 
-```go
-func (s *AuthService) ValidateJWT(tokenString string) (*Claims, error) {
-    token, err := jwt.ParseWithClaims(
-        tokenString,
-        &Claims{},
-        func(token *jwt.Token) (interface{}, error) {
-            return []byte(os.Getenv("JWT_SECRET")), nil
-        },
-    )
-    
-    if err != nil {
-        return nil, err
-    }
-    
-    if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-        return claims, nil
-    }
-    
-    return nil, errors.New("invalid token")
-}
-```
 
 ---
 
@@ -353,43 +110,7 @@ func (s *AuthService) ValidateJWT(tokenString string) (*Claims, error) {
 - **TTL support** (auto-expire old sessions)
 - **Distributed** (works across multiple auth service pods)
 
-### Cache Session
 
-```go
-func (s *AuthService) CacheSession(playerID, token string) error {
-    // Store session for 24 hours
-    return s.redis.Set(
-        context.Background(),
-        "session:"+playerID,
-        token,
-        24*time.Hour,
-    ).Err()
-}
-```
-
-### Check Session
-
-```go
-func (s *AuthService) GetSession(playerID string) (string, error) {
-    return s.redis.Get(
-        context.Background(),
-        "session:"+playerID,
-    ).Result()
-}
-```
-
-### Invalidate Session (Logout)
-
-```go
-func (s *AuthService) LogoutHandler(c *gin.Context) {
-    playerID := c.GetString("player_id") // from JWT middleware
-    
-    // Delete from Redis
-    s.redis.Del(context.Background(), "session:"+playerID)
-    
-    c.JSON(200, gin.H{"message": "Logged out successfully"})
-}
-```
 
 ---
 
@@ -397,66 +118,10 @@ func (s *AuthService) LogoutHandler(c *gin.Context) {
 
 Every protected endpoint needs to verify the JWT:
 
-```go
-func (s *AuthService) AuthMiddleware() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        // 1. Get token from header
-        authHeader := c.GetHeader("Authorization")
-        if authHeader == "" {
-            c.JSON(401, gin.H{"error": "Missing authorization header"})
-            c.Abort()
-            return
-        }
-        
-        // 2. Extract token (format: "Bearer <token>")
-        tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-        
-        // 3. Validate JWT
-        claims, err := s.ValidateJWT(tokenString)
-        if err != nil {
-            c.JSON(401, gin.H{"error": "Invalid token"})
-            c.Abort()
-            return
-        }
-        
-        // 4. Check if session still exists in Redis
-        _, err = s.GetSession(claims.PlayerID)
-        if err != nil {
-            c.JSON(401, gin.H{"error": "Session expired"})
-            c.Abort()
-            return
-        }
-        
-        // 5. Attach player ID to context
-        c.Set("player_id", claims.PlayerID)
-        c.Next()
-    }
-}
-```
 
 ### Using the Middleware
 
-```go
-func main() {
-    router := gin.Default()
-    authService := NewAuthService()
-    
-    // Public routes
-    router.POST("/auth/steam", authService.SteamLoginHandler)
-    router.POST("/auth/login", authService.LoginHandler)
-    router.POST("/auth/register", authService.RegisterHandler)
-    
-    // Protected routes
-    protected := router.Group("/api")
-    protected.Use(authService.AuthMiddleware())
-    {
-        protected.GET("/player/profile", GetProfileHandler)
-        protected.GET("/player/inventory", GetInventoryHandler)
-    }
-    
-    router.Run(":8080")
-}
-```
+
 
 ---
 
@@ -481,45 +146,11 @@ I use **24 hours** for my tokens. Shorter = more secure, but requires refresh lo
 
 ### 4. Implement Refresh Tokens
 
-```go
-type RefreshToken struct {
-    Token     string
-    PlayerID  string
-    ExpiresAt time.Time
-}
 
-func (s *AuthService) RefreshHandler(c *gin.Context) {
-    var req struct {
-        RefreshToken string `json:"refresh_token"`
-    }
-    c.ShouldBindJSON(&req)
-    
-    // Validate refresh token (stored in DB)
-    rt, err := s.db.GetRefreshToken(req.RefreshToken)
-    if err != nil || rt.ExpiresAt.Before(time.Now()) {
-        c.JSON(401, gin.H{"error": "Invalid refresh token"})
-        return
-    }
-    
-    // Generate new access token
-    newToken, _ := s.GenerateJWT(rt.PlayerID)
-    
-    c.JSON(200, gin.H{"token": newToken})
-}
-```
 
 ### 5. Rate Limiting
 
 Prevent brute-force attacks:
-
-```go
-// Allow 5 login attempts per minute
-limiter := tollbooth.NewLimiter(5, &limiter.ExpirableOptions{
-    DefaultExpirationTTL: time.Minute,
-})
-
-router.POST("/auth/login", tollbooth.LimitFuncHandler(limiter, authService.LoginHandler))
-```
 
 ---
 
@@ -527,23 +158,6 @@ router.POST("/auth/login", tollbooth.LimitFuncHandler(limiter, authService.Login
 
 ### Test Steam Login
 
-```bash
-curl -X POST http://localhost:8080/auth/steam \
-  -H "Content-Type: application/json" \
-  -d '{"auth_ticket": "14000000abcdef..."}'
-```
-
-Response:
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "player": {
-    "id": "player-123",
-    "username": "ProGamer42",
-    "steam_id": "76561198012345678"
-  }
-}
-```
 
 ### Test Protected Endpoint
 
@@ -558,10 +172,10 @@ curl -X GET http://localhost:8080/api/player/profile \
 
 After implementing this dual-auth system:
 
-✅ **99.9% login success rate**  
-✅ **<100ms average auth latency**  
-✅ **Zero security breaches** in production  
-✅ **Seamless player experience** - stay logged in for 24 hours  
+- **99.9% login success rate**  
+- **<100ms average auth latency**  
+- **Zero security breaches** in production  
+- **Seamless player experience** - stay logged in for 24 hours  
 
 ---
 
@@ -574,13 +188,6 @@ After implementing this dual-auth system:
 5. **Test with real Steam accounts** - Steam sandbox can behave differently
 
 ---
-
-**Related Posts**:
-- [Microservice Architecture for Live-Service Games](/blog/microservice-architecture-for-games)
-- [Real-Time Communication: REST vs TCP Sockets](/blog/realtime-communication-unreal)
-
-**Back to Project**: [Warzone-Inspired Live-Service Backend](/projects/warzone-backend)
-
 
 
 
