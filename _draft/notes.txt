@@ -1,0 +1,31 @@
+Microservices Architecture - 
+
+Realtime Gateway - Bidirectional TCP Communitation using Authenticated Sockets
+
+Terraform
+
+CI / CD- Github actions for Compiling Services and Jenkins for Nighly Compiling Dedicated server and Widnows Client
+
+Docker 
+
+Kubernetes 
+
+K6 For Load Testing
+
+Custom Go TCP Testing 
+
+Microtransactions using Stripe
+
+Player Progression and Equipment
+
+Unified Player Accounts
+
+Matchmaking
+
+Dedicated Servers as Docker Containers
+
+Observability stack with Grafana, Tempo, Loki and Prometheus
+
+Realtime Game Analytics - InfluxDB 
+
+Multi Region Support - Cloud Spanner for Global Database, RabbitMQ for in region message bus and Google PubSub for Global Cross Region Messaging

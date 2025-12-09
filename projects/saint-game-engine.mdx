@@ -43,7 +43,7 @@ The initial phase focused on building the core engine framework and performance-
 To achieve memory efficiency and simplify the API compared to third-party solutions (e.g., EnTT), I designed and implemented a custom ECS from scratch.
 - **Design Principle**: Data-Oriented Design prioritizes the layout of data in memory for optimal CPU cache utilization.
 - **Structure**: Components are stored in arrays contiguous in memory. When an Entity is created, its components are allocated tightly together, which drastically reduces cache misses when Systems iterate over large sets of Entities.
-- **Validation**: Utilized [Tracy Profiler](https://github.com/wolfpld/tracy) early in development [See Figure 3](#Figure-3-Saint-Game-Engine-Profiling). Profiling confirmed successful compact memory maps and efficient allocation packing, proving the system achieved its performance target for component iteration.
+- **Validation**: Utilized [Tracy Profiler](https://github.com/wolfpld/tracy) early in development [See Figure 3](#figure-3-saint-game-engine-profiling). Profiling confirmed successful compact memory maps and efficient allocation packing, proving the system achieved its performance target for component iteration.
 
 #### Core Utility Systems
 - **Asset Registry**: Developed a generic resource loader supporting common 2D assets: fonts, tilemaps, and sprite sheets via SDL. This generic interface was designed for later inheritance/extension to handle Vulkan-specific resources.

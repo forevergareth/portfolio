@@ -12,7 +12,7 @@ teamSize: "Solo"
   <iframe
     style="width: 100%; height: 500px; border-radius: 0.5rem; border: none;"
     src="https://www.youtube.com/embed/aSQL-0eaqtM?si=EfoeOxp7GSkbCSns"
-    title="Dungeon Delvers Gameplay"
+    title="Unreal Engine Live Service Framework Demo"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
     allowFullScreen
   ></iframe>
@@ -20,17 +20,9 @@ teamSize: "Solo"
 
 
 ## Overview
-
 To support a global-scale, multiplayer live-service title, I architected and implemented a **robust, scalable platform** designed to handle the rigorous demands of modern online gaming. The core of this project is a distributed backend built on a **microservice architecture using Go**, engineered to decouple critical game systems for high avaliability and maintainability.
 
 This platform provides a seamless, persistent experience for players, managing everything from cross-platform authentication and authoritative progression to complex inventory management and real-money monetization. The entire infrastructure is **containerized with Docker and orchestrated by Kubernetes**, ensuring a production-grade, resilient environment capable of auto-scaling to meet player demand.
-
-### Scope
-- **Cross-Platform Identity**: Unified player accounts across Steam and custom login providers.
-- **Backend-Authoritative Gameplay**: Secure, server-validated progression, inventory, and economy.
-- **Real-Time Infrastructure**: Hybrid TCP/UDP communication for low-latency state synchronization.
-- **DevOps Excellence**: Fully automated CI/CD pipelines with Jenkins and containerized deployments.
-- **Modular Client Architecture**: Component-based Unreal Engine implementation using CommonUI, Authored Plugins and DataAssets.
 
 ---
 
@@ -72,8 +64,6 @@ I developed a suite of high-performance microservices using **Go**. Inter-servic
 - **Store Service**: Manages catalog rotation, virtual currency, and payment processing.
 - **Analytics Service**: Ingests and processes telemetry data for game balancing and business intelligence.
 
-[**→ Read the full technical deep-dive on the microservice architecture**](/blog/microservice-architecture-for-games)
-
 ---
 
 ### 2. DevOps & Infrastructure
@@ -86,8 +76,6 @@ I developed a suite of high-performance microservices using **Go**. Inter-servic
 - **CI/CD with Jenkins**: Automated pipelines trigger on git commits to run tests, build Docker images, and deploy to staging environments. This allows for safe, rapid deployment of new features and hotfixes.
 
 ![Gameplay Screenshot](/img/unreal-engine-live-service-framework/r3-dev-01.png)
-
-[**→ Full DevOps and Kubernetes deployment guide**](/blog/kubernetes-deployment-game-backend)
 
 ---
 
@@ -114,8 +102,6 @@ All critical logic is **server-authoritative** to prevent cheating and ensure fa
 - **Stripe Integration**: Direct integration with Stripe API for real-money transactions, handling webhooks for secure fulfillment and audit logging.
 - **Store Rotation**: The backend controls the active store catalog, allowing for dynamic updates and limited-time offers without client patches.
 
-[**→ Complete guide to the metagame and monetization implementation**](/blog/metagame-monetization-stripe)
-
 ---
 
 ### 4. Cross-Platform & Unified Accounts
@@ -129,8 +115,6 @@ All critical logic is **server-authoritative** to prevent cheating and ensure fa
 
 ![Gameplay Screenshot](/img/unreal-engine-live-service-framework/r3-dev-03.png)
 
-[**→ Read the detailed implementation of the authentication system**](/blog/authentication-steam-jwt)
-
 ---
 
 ### 5. Unreal Engine Client Architecture
@@ -142,7 +126,6 @@ All critical logic is **server-authoritative** to prevent cheating and ensure fa
 #### Modular Design
 The client is architected into distinct modules to enforce separation of concerns:
 - **R3OnlineServices**: Handles all HTTP/TCP communication with the backend.
-- **R3Party**: Manages lobby state and social interactions.
 - **R3**: Core gameplay logic.
 
 #### CommonUI & UX
@@ -162,24 +145,9 @@ The architecture is designed with GAS in mind for future character abilities. Pl
 
 **Implementation**:
 - **TCP Sockets**: Used for handling Purchase and Matchmaking Notifications. TCP ensures that these critical messages are never lost.
-- **UDP**: Reserved for high-frequency, loss-tolerant gameplay replication (movement, shooting) via Unreal's native networking.
 - **REST**: Used for "cold" data fetching profiles, inventory, store catalogs, and progression metadata.
 
 ![Gameplay Screenshot](/img/unreal-engine-live-service-framework/r3-dev-03.png)
-
-[**→ Deep dive into the REST vs TCP socket architecture**](/blog/realtime-communication-unreal)
-
----
-
-## Technical Blog Posts
-
-For detailed implementation guides on each system:
-
-1. [**Microservice Architecture for Live-Service Games**](/blog/microservice-architecture-for-games)
-2. [**Building Authentication with Steam & JWT**](/blog/authentication-steam-jwt)
-3. [**Real-Time Communication: REST vs TCP Sockets**](/blog/realtime-communication-unreal)
-4. [**Metagame Systems & Stripe Payment Integration**](/blog/metagame-monetization-stripe)
-5. [**Deploying Game Backends with Kubernetes**](/blog/kubernetes-deployment-game-backend)
 
 ---
 
