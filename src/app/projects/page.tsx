@@ -17,12 +17,12 @@ export default async function ProjectsPage() {
   return (
     <section>
       <BlurFade delay={BLUR_FADE_DELAY}>
-        <h1 className="font-medium text-2xl mb-8 tracking-tighter">projects</h1>
+        <h1 className="font-medium text-2xl mb-8 tracking-tighter">Projects</h1>
       </BlurFade>
       <BlurFade delay={BLUR_FADE_DELAY * 2}>
         <p className="text-muted-foreground mb-8">
-          A collection of game development projects showcasing my journey from software engineering to game development.
-          Each project represents different aspects of game creation, from gameplay mechanics to complete game systems.
+          A collection of game development projects showcasing my journey to game development.
+          Each project represents different aspects of the game development process, from gameplay mechanics to systems and more.
         </p>
       </BlurFade>
       <div className="grid gap-6">
