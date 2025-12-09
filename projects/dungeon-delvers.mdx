@@ -4,7 +4,7 @@ publishedAt: "2025-02-30"
 summary: "A high-risk-high-reward third-person dungeon crawler featuring combat, looting, and a unique progression system."
 image: "/img/dungeon-delvers/dd-sample-00.png"
 platform: "Windows"
-tools: ["Unity", "C#"]
+tools: ["Unity", "C#", "Perforce", "Scriptable Objects"]
 duration: "1 months"
 teamSize: "4"
 role: "Gameplay Programmer"
@@ -21,61 +21,62 @@ role: "Gameplay Programmer"
 </div>
 
 ## Overview
-
-Dungeon Delvers is a third-person dungeon crawler in a high-risk-high-reward dungeon environment where the player is a wizard who must survive the dungeon and kill monsters to loot item upgrades with a unique progression system.
+**Dungeon Delvers** is a third-person dungeon crawler in a high-risk-high-reward dungeon environment where the player is a wizard who must survive the dungeon and kill monsters to loot item upgrades with a unique progression system.
 
 The player will go through the dungeons upgrading killing the enemies/boss and acquiring loot to increase their progression. Upon killing the boss the player can go back to the hub and save their gear and progress or continue further to risk it all.
 
-## Project Design Goals
+## The Challenge
+**Objective**: deliver a polished, high-risk/high-reward dungeon crawler within a strict four-week and testing development cycle.
 
-### Dungeon System
-The dungeon will be randomly chosen for the player and the player will have to fight the boss to either leave the dungeon or keep progressing to the next dungeon. 
+As the team comprised only four members, the architectural challenge was to build a robust **Skill and Attribute System** that was modular enough to allow for rapid iteration, yet stable enough to support complex interactions, user feedback and extension.
 
-### Skill System
-The player has 3 key skills that fall within the three categories, offensive, defensive, and movement.  As the player progresses through the dungeon, they earn points that can be used to increase an attribute to any skill. 
+My primary focus was engineering the core gameplay systems that define the player character (Wizard):
+1. **The Attribute System**: Managing state (Health, Mana) and derived stats (Damage Mitigation).
+1. **The Ability System**: Implementing three distinct mechanic types (Movement, Offense, Defense).
+1. **The Feedback Loop**: Connecting backend logic to the Frontend UI, Animation, and Visual Effects (VFX).
 
-### Loot System
-The player will get loot through interactable items or through killing enemies/bosses, through the use of a loot table.
+The goal was to create a **"feel"** that was responsive and impactful, that ensures our high-stakes gameplay loop (survive or lose everything) felt fair.
 
-## Constraints
-- One Month Timeframe
+---
 
-## Gameplay
+## Implementation & Architecture
+### The Attribute System
+I architected a centralized specific data structure to handle character stats. This went beyond simple variables; it required an event-driven approach to ensure the UI and game state remained in sync.
 
-### Core Loop
+- **Health & Mana**: Implemented as clamped float values with regeneration logic and event broadcasters (observers) that notify the UI when values change.
 
-1.	**Tutorial Level** – The first level is designed to operate like a consistent introductory level. The player progresses through the dungeon rooms while defeating monsters with the goal of finding the boss room. As the player explored the dungeon they may come across interactable rewards that give the player upgrades.
-2.	**Character Hideout Screen** – On the character screen the player will review their skills any available upgrades before starting a run into the dungeon.
-3.	**Enter The Dungeon** – The player enters the dungeon and is dropped into a random dungeon we have made for them to explore. 
-4.	**Boss Room** – The player encounters the boss and should defeat the boss which will spawn two portals, one portal will save the players progress and another takes the player to randomly selected level.
-5.	**Dynamic Room** – The player chooses to risk going deeper into the dungeon/labyrinth, selecting the advance portal moves the player to another randomly selected level with scaled difficulty.
-6.	**Save and Return** – The player chooses not to risk any more progress, selecting the return portal saves the players progress and takes them to the hideout screen allowing them to review their achievements.
+- **Damage Mitigation**: Created a calculation pipeline where incoming damage is intercepted and reduced by the mitigation stat before affecting health. This allowed the Shield ability to dynamically alter the player's durability without changing base health.
 
+### The Ability System
+To showcase versatility, I implemented three **Data Driven** abilities spanning different gameplay archetypes using Unity Scriptable Objects. Each required a different technical approach:
 
-## Abilities
-![Gameplay Screenshot](/img/dungeon-delvers/dd-sample-02.png)
+#### Offensive: Fireball (Projectile Logic)
+- **Logic**: Instantiated a physics-based projectile with forward velocity.
+- **Implementation**: Used overlap checks for collision detection upon impact. The system decouples the visual explosion from the logic, ensuring damage is applied even if the particle effect is culled for performance.
+- **Mana Integration**: Checks for available mana resources prior to instantiation; interrupts execution if the resource check fails.
 
-### Blink
+![Fireball Ability Screenshot](/img/dungeon-delvers/dd-sample-01.png)
 
-Players control Max with the keyboard and mouse. The W-A-S-D keys move Max, and he
-faces the direction of an on-screen reticle that is controlled by the mouse.
-
-![Blink Screenshot](/img/dungeon-delvers/dd-sample-02.png)
-
-### Shield
-
-Max is able to jump with the player presses the SPACEBAR. While in the middle of a jump,
-Max will jump further with a Double Jump when the player presses the SPACEBAR again.
-Jumping and Double Jumping are used to reach new areas in the level, dodge enemy gunfire,
-and adds a light 3D platforming element to the game.
+#### Defensive: Magic Shield (State Modification)
+- **Logic**: A toggle-based or duration-based buff that alters the Damage Mitigation attribute.
+- **Implementation**: When active, this ability hooks into the TakeDamage interface, modifying the incoming integer before the Health reduction logic runs.
+- **Visuals**: Spawns a mesh/particle effect parented to the player transform that rotates to signify active mitigation.
 
 ![Shield Ability Screenshot](/img/dungeon-delvers/dd-sample-03.png)
 
-### Fireball
+#### Movement: Blink (Vector Math & Navigation)
+- **Logic**: Instantaneous teleportation to a target location.
+- **Implementation**: This required robust validation to prevent players from clipping out of bounds. I utilized Raycasting and NavMesh sampling to calculate a valid target vector. If the max distance lands inside a wall, the system clamps the position to the nearest valid point on the vector.
 
-The LEFT MOUSE button fires the Primary Attack of the currently equipped weapon.
+![Blink Screenshot](/img/dungeon-delvers/dd-sample-02.png)
 
-![Fireball Ability Screenshot](/img/dungeon-delvers/dd-sample-01.png)
+---
+
+## Conclusion & Key Takeaways
+**The Result**: Despite the aggressive one-month timeline, **"Dungeon Delvers"** successfully delivered a functional Core Loop with a full featured combat system (there are a few bugs in there). The Skill System's modular and Data Driven architecture allowed the team to tweak damage numbers, and mana costs without touching code at all, resulting in quick iteration cycles.
+
+**Reflecting on the Experience**: In previous stages of my career, I might have hard-coded these interactions for speed. However, bringing eight years of experience to this project meant I prioritized scalability and clean architecture from Day 1. By treating the Attribute and Skill systems as distinct but communicating modules, I ensured that if the project were to expand to 50 spells or 100 items, the underlying code would remain stable.
+
 
 ---
 
