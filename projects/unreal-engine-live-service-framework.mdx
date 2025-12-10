@@ -69,11 +69,14 @@ The backend ecosystem is fully microservice-driven, with each service owning a w
 
 Services communicate through a combination of HTTP/gRPC for direct queries and **RabbitMQ** for event-driven interactions. This hybrid approach gives me low-latency synchronous paths when needed, and decoupled asynchronous patterns for cross-service updates.
 
-Resiliency was a key priority. A failure in inventory should not impact payments. A failure in cosmetics should not break authentication. Each service is independently deployable, independently scalable, and built to gracefully handle upstream or downstream outages.
+**Resiliency was a key priority**. A failure in inventory should not impact payments. A failure in cosmetics should not break authentication. Each service is independently deployable, independently scalable, and built to gracefully handle upstream or downstream outages.
+
+Load testing extended to the full infrastructure using **K6**, simulating real-world scenarios like burst traffic from thousands of players. This holistic suite tested sequential actions across endpoints, measuring latencies **(P50/P90/P95/P99)** and resource scaling—outperforming tools like JMeter for integration-like fidelity.
+
 
 ### Infrastructure, Orchestration, and CI/CD
 
-Every part of the system is containerized, built through **GitHub Actions**, and deployed through **Kubernetes**.
+Every part of the system is containerized, built through **GitHub Actions**, and deployed through **Kubernetes** tested locally using **minikube**.
 
 For Unreal Engine dedicated servers, I took a step further by building an automated Windows-based **Jenkins** pipeline capable of packaging dedicated server builds inside the official **Epic Unreal Engine Docker image**. This eliminated the traditional pain point of manually building Unreal Engine servers across machines.
 
@@ -100,6 +103,13 @@ This allowed me to experiment with cross-region writes, data locality strategies
 I built a full store service integrated with Stripe, enabling real-money purchases of currency bundles and cosmetic items. The flow includes backend checkout session generation, webhook fulfillment, message-bus event propagation, and real-time in-game notification to the player in Unreal Engine.
 
 This mimics production monetization workflows in modern live-service titles and demonstrates how tightly gameplay systems can integrate with backend event streams.
+
+Key features include:
+
+- **Microtransactions and Fulfillment**: Integrated Stripe for secure payments, generating checkout URLs from the Unreal client. Webhooks trigger fulfillment via RabbitMQ, granting virtual currency or cosmetics in milliseconds through real-time TCP notifications. Cosmetics are managed via Unreal primary data assets.
+- **Unified Player Accounts**: Leveraged Unreal's online subsystems for Steam and Epic Games, enabling platform-agnostic authentication. The backend validates tickets, supports account linking/creation, and includes fallback username/password for testing—ensuring cross-platform persistence.
+- **Progression and Equipment**: Server-validated XP and unlocks via server-to-server communication, with safeguards against tampering to maintain fair play.
+- **Matchmaking and Server Provisioning**: Custom system inspired by OpenMatch and Agones, provisioning dedicated servers via Docker/Kubernetes drivers. Supports mock, Docker, and future Kubernetes modes for regional scaling, with security like random passwords and port allocation.
 
 ---
 
