@@ -80,6 +80,8 @@ Every part of the system is containerized, built through **GitHub Actions**, and
 
 For Unreal Engine dedicated servers, I took a step further by building an automated Windows-based **Jenkins** pipeline capable of packaging dedicated server builds inside the official **Epic Unreal Engine Docker image**. This eliminated the traditional pain point of manually building Unreal Engine servers across machines.
 
+![Jenkins Build Pipeline ](/img/unreal-engine-live-service-framework/r3-dev-16.png)
+
 Once built, the images are published to **GitHub Container Registry** and can be deployed anywhere, even onto bare-metal nodes without requiring Unreal Engine source to be installed locally.
 
 **Terraform** closes the loop by provisioning **GKE** clusters, **Hetzner** worker nodes, the observability stack, and networking infrastructure on demand. A full region can be deployed in minutes, not days.
