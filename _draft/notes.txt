@@ -6,13 +6,13 @@ Terraform
 
 CI / CD- Github actions for Compiling Services and Jenkins for Nighly Compiling Dedicated server and Widnows Client
 
-Docker 
+Docker - Containerization
 
-Kubernetes 
+Kubernetes - Orchestration
 
 K6 For Load Testing
 
-Custom Go TCP Testing 
+Custom Go TCP Testing - due to  the limitations of off the shelf testing framworks i created my own harnes to to test connectuin durability
 
 Microtransactions using Stripe
 
@@ -28,4 +28,4 @@ Observability stack with Grafana, Tempo, Loki and Prometheus
 
 Realtime Game Analytics - InfluxDB 
 
-Multi Region Support - Cloud Spanner for Global Database, RabbitMQ for in region message bus and Google PubSub for Global Cross Region Messaging
+Multi Region Support - Using PostgreSQL Dialect with Cockroach DB for Global Database, RabbitMQ for in region message bus and Google PubSub for Global Cross Region Messaging
