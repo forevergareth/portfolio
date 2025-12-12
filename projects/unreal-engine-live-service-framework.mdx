@@ -57,9 +57,11 @@ Building the system required approaching it from multiple angles simultaneously:
 
 At the center of the runtime is a custom TCP gateway that handles bi-directional, low-latency communication with the Unreal Engine client. Building this from scratch gave me full control over serialization, packet shaping, connection lifecycle, authentication, and message routing.
 
-Most importantly, I implemented the gateway in Go with a focus on memory efficiency, non-blocking I/O, and fine-grained control over goroutine scheduling. Through iterative load testing, profiling, and optimization, I reached over **10,000 authenticated concurrent connections** on a single node, while sustaining more than **1,000 messages per second** at under **40% CPU utilization** and **150 MB of RAM**.
+Most importantly, I implemented the gateway in Go with a focus on memory efficiency, non-blocking I/O, and fine-grained control over goroutine scheduling. Through iterative load testing, profiling, and optimization, I reached over **10,000 authenticated concurrent connections** on a single node, while sustaining more than **10,000 messages per second** at under **20% CPU utilization** and **500 MB of RAM**.
 
-This required building my own custom TCP load-testing suite. Existing tools were insufficient—they couldn’t simulate game-specific packet types, message patterns, or authentication flows. My custom suite allowed me to run realistic simulations: **2,000–10,000 simultaneous clients**, each maintaining state, sending periodic packets, and executing request/response patterns mimicking a real live-service game.
+![Custom TCP Load-Testing Suite](/img/unreal-engine-live-service-framework/r3-dev-17.png)
+
+This required building my own custom TCP load-testing suite using **Go**. Existing tools were insufficient because they couldn’t simulate game-specific packet types, message patterns, or authentication flows. My custom suite allowed me to run realistic simulations: **10,000 simultaneous clients**, each maintaining state, sending periodic packets, and executing request/response patterns mimicking a real live-service game.
 
 The result was not just a gateway that worked—it was a gateway whose performance characteristics I deeply understood.
 
@@ -80,7 +82,7 @@ Every part of the system is containerized, built through **GitHub Actions**, and
 
 For Unreal Engine dedicated servers, I took a step further by building an automated Windows-based **Jenkins** pipeline capable of packaging dedicated server builds inside the official **Epic Unreal Engine Docker image**. This eliminated the traditional pain point of manually building Unreal Engine servers across machines.
 
-![Jenkins Build Pipeline ](/img/unreal-engine-live-service-framework/r3-dev-16.png)
+![Unreal Engine Jenkins Build Pipeline](/img/unreal-engine-live-service-framework/r3-dev-16.png)
 
 Once built, the images are published to **GitHub Container Registry** and can be deployed anywhere, even onto bare-metal nodes without requiring Unreal Engine source to be installed locally.
 
