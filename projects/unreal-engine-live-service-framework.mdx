@@ -24,9 +24,7 @@ This project represents a tangible expression of my passion for large-scale, rea
 
 Rather than focus on a single subsystem, **I set out to build the full software development stack**: an **Unreal Engine game client**, a **highly scalable microservice backend**, a **global-ready data layer**, automated **CI/CD pipelines**, **Kubernetes-based orchestration**, **observability infrastructure**, and the tooling required to test, validate, and push the system toward global scale workloads.
 
-The end result is a functioning live-service ecosystem that mirrors the architectural principles, engineering discipline, and runtime characteristics expected in production environments at AAA studios. The system supports real-time gameplay interactions over TCP, scalable microservices, regional deployments, global databases, payments, inventory, cosmetics, progression, and a full operability suite for diagnosing performance, latency, and system health.
-
-This work reflects my technical depth not only in Unreal Engine networking patterns such as replication, RPCs, relevancy, latency mitigation, but also in distributed systems, microservices, low-level networking, backend architecture, containerization, and cloud-native operations.
+The end result is a functioning live-service ecosystem that mirrors the architectural principles, engineering discipline, and runtime characteristics expected in production environments. The system supports real-time interactions over TCP, scalable microservices, regional deployments, global databases, payments, inventory, cosmetics, progression, and a full operability suite for diagnosing performance, latency, and system health.
 
 ---
 
@@ -36,7 +34,7 @@ The core challenge I set for myself was simple to articulate but extremely deman
 
 To answer this, I needed to solve a set of problems that normally require large teams:
 - **How do you design a real-time communication layer between Unreal Engine and backend services with predictable latency and high throughput?**
-- **How do you architect a microservice ecosystem that avoids monolithic coupling, remains resilient to partial failures, and scales horizontally?**
+- **How do you architect a microservice ecosystem for global scale that remains resilient to partial failures, and scales horizontally?**
 - **How do you simulate the scale tens or hundreds of thousands of players without access to enterprise-grade load-testing platforms?**
 - **How do you build observability for latency, throughput, RPC timing, service health, and distributed tracing without relying on third-party SaaS?**
 - **How do you enable global scale in storage, synchronization, regional clusters, and player state consistency?**
@@ -53,40 +51,43 @@ This project became a long-form technical proving ground: a place to demonstrate
 
 Building the system required approaching it from multiple angles simultaneously: the networking layer, the backend architecture, infrastructure automation, data consistency, scale testing, and Unreal Engine integration.
 
+### Microservice Architecture and Distributed Backend
+
+The backend ecosystem is fully microservice-driven, with each service owning a well-bounded domain: accounts, inventory, cosmetics, payments, matchmaking, progression, and real-time events.
+
+![Unreal Engine Microservice Architecture Diagram](/img/unreal-engine-live-service-framework/r3-dev-18.png)
+
+Services communicate through a combination of **HTTP/gRPC** for direct queries and **RabbitMQ** for event-driven interactions. This hybrid approach gives me low-latency synchronous paths when needed, and decoupled asynchronous patterns for cross-service updates.
+
+**Resiliency was a key priority**. A failure in inventory should not impact payments. A failure in cosmetics should not break authentication. Each service is independently deployable, independently scalable, and built to gracefully handle upstream or downstream outages.
+
+Load testing extended to the full infrastructure using **K6**, simulating real-world scenarios like burst traffic from thousands of players. This holistic suite tested sequential actions across endpoints, measuring latencies **(P50/P90/P95/P99)** and resource scaling, outperforming tools like JMeter.
+
 ### Real-Time Gateway and Networking Layer
 
 At the center of the runtime is a custom TCP gateway that handles bi-directional, low-latency communication with the Unreal Engine client. Building this from scratch gave me full control over serialization, packet shaping, connection lifecycle, authentication, and message routing.
 
-Most importantly, I implemented the gateway in Go with a focus on memory efficiency, non-blocking I/O, and fine-grained control over goroutine scheduling. Through iterative load testing, profiling, and optimization, I reached over **10,000 authenticated concurrent connections** on a single node, while sustaining more than **10,000 messages per second** at under **20% CPU utilization** and **500 MB of RAM**.
+Most importantly, I implemented the gateway in Go with a focus on memory efficiency, non-blocking I/O, and fine-grained control over goroutine scheduling. Through iterative load testing, profiling, and optimization, I reached over **10,000 authenticated concurrent connections** on a single node, while sustaining more than **10,000 messages per second** at under **10% CPU utilization** and **500 MB of RAM**.
 
 ![Custom TCP Load-Testing Suite](/img/unreal-engine-live-service-framework/r3-dev-17.png)
 
 This required building my own custom TCP load-testing suite using **Go**. Existing tools were insufficient because they couldn’t simulate game-specific packet types, message patterns, or authentication flows. My custom suite allowed me to run realistic simulations: **10,000 simultaneous clients**, each maintaining state, sending periodic packets, and executing request/response patterns mimicking a real live-service game.
 
-The result was not just a gateway that worked—it was a gateway whose performance characteristics I deeply understood.
-
-### Microservice Architecture and Distributed Backend
-
-The backend ecosystem is fully microservice-driven, with each service owning a well-bounded domain: accounts, inventory, cosmetics, payments, matchmaking, progression, and real-time events.
-
-Services communicate through a combination of HTTP/gRPC for direct queries and **RabbitMQ** for event-driven interactions. This hybrid approach gives me low-latency synchronous paths when needed, and decoupled asynchronous patterns for cross-service updates.
-
-**Resiliency was a key priority**. A failure in inventory should not impact payments. A failure in cosmetics should not break authentication. Each service is independently deployable, independently scalable, and built to gracefully handle upstream or downstream outages.
-
-Load testing extended to the full infrastructure using **K6**, simulating real-world scenarios like burst traffic from thousands of players. This holistic suite tested sequential actions across endpoints, measuring latencies **(P50/P90/P95/P99)** and resource scaling—outperforming tools like JMeter for integration-like fidelity.
-
+The result was not just a gateway that worked, it was a gateway whose performance characteristics I deeply understood.
 
 ### Infrastructure, Orchestration, and CI/CD
 
 Every part of the system is containerized, built through **GitHub Actions**, and deployed through **Kubernetes** tested locally using **minikube**.
 
-For Unreal Engine dedicated servers, I took a step further by building an automated Windows-based **Jenkins** pipeline capable of packaging dedicated server builds inside the official **Epic Unreal Engine Docker image**. This eliminated the traditional pain point of manually building Unreal Engine servers across machines.
+![Building Microservices using Github Actions](/img/unreal-engine-live-service-framework/r3-dev-19.png)
+
+For **Unreal Engine dedicated servers**, I took a step further by building an automated Windows-based **Jenkins pipeline** capable of packaging dedicated server builds inside the official **Epic Unreal Engine Docker image**. This eliminated the traditional pain point of manually building Unreal Engine servers across machines.
 
 ![Unreal Engine Jenkins Build Pipeline](/img/unreal-engine-live-service-framework/r3-dev-16.png)
 
-Once built, the images are published to **GitHub Container Registry** and can be deployed anywhere, even onto bare-metal nodes without requiring Unreal Engine source to be installed locally.
+Once built, the images are published to **GitHub Container Registry** and can be deployed anywhere, even onto bare-metal nodes with minimal friction and Docker compatibility.
 
-**Terraform** closes the loop by provisioning **GKE** clusters, **Hetzner** worker nodes, the observability stack, and networking infrastructure on demand. A full region can be deployed in minutes, not days.
+**Terraform** closes the loop by provisioning a single **GKE** Control Plane, **Hetzner** worker nodes, the observability stack, and networking infrastructure on demand. A full region can be deployed in minutes, not days.
 
 ### Observability and Performance Profiling
 
@@ -98,9 +99,26 @@ This visibility became crucial when pushing toward higher concurrency or diagnos
 
 ### Global Scale, Data Layer, and Consistency Models
 
-To model global live-service games where Europe, NA, and APAC players all share persistent accounts, I tested the backend with **CockroachDB**, a globally distributed, Postgres-compatible database.
+Live-service games demand a data layer that can deliver **global scale**, **strong consistency**, and **high availability**, without sacrificing the **throughput** required for real-time gameplay.
 
-This allowed me to experiment with cross-region writes, data locality strategies, latency trade-offs, and sharded player data. Even without multiple real regions deployed, the architecture supports them because the data layer behaves consistently with production-grade multi-region systems.
+**PostgreSQL**, while battle-tested and performant, hits fundamental limitations when scaling globally. Sharding introduces operational complexity, cross-shard transaction coordination, and rebalancing nightmares. At global scale, you're left managing a fragile patchwork of read replicas, proxy layers, and application-level sharding logic.
+
+I evaluated two technologies purpose-built for this problem: **Google Cloud Spanner** and **CockroachDB**. Both offer globally distributed, strongly consistent, horizontally scalable SQL databases. Spanner pioneered the space, but CockroachDB won out for several key reasons:
+
+- **Local Development**: CockroachDB runs seamlessly in Docker, allowing me to develop and test multi-region behaviors on my local machine without cloud dependencies.
+- **Cost Efficiency**: CockroachDB Labs offers significantly more affordable cloud tiers compared to Spanner's enterprise pricing, critical for an independent project.
+- **Postgres Compatibility**: Near-complete Postgres wire protocol support meant my existing Go database tooling, migrations, and queries worked with minimal changes.
+
+![Global Live Service Database Design](/img/unreal-engine-live-service-framework/r3-dev-20.png)
+
+The architectural power of CockroachDB lies in its native multi-region primitives. I leveraged **Global Tables** and **Regional Tables** to make deliberate decisions about data locality:
+
+- **Global Tables** for data requiring low-latency reads worldwide ie. cosmetic catalogs, store configurations, and game metadata. These tables replicate across all regions, ensuring any player anywhere reads local data instantly.
+- **Regional Tables** for player-specific, high-write-throughput data ie. inventories, match history, progression state. By pinning this data to the player's home region, I minimized write latency while maintaining strong consistency guarantees.
+
+This explicit control over data placement allowed me to optimize for the access patterns that matter: **fast reads globally, fast writes locally**. A European player's inventory updates stay in Frankfurt with single-digit millisecond commits, while the cosmetic store they browse is served from a local replica without cross-Atlantic round trips.
+
+Even without deploying multiple physical regions in production, the architecture is **region-ready by design**.
 
 ### Monetization and Gameplay Integration
 
@@ -121,17 +139,8 @@ Key features include:
 
 This project represents one of the most ambitious engineering efforts I’ve undertaken independently, and it reflects the exact type of work I want to contribute to professionally: large-scale online multiplayer systems, real-time gameplay networking, distributed architecture, and live-service operations.
 
-Through building this framework, I strengthened my mastery in areas essential to engineering:
-- Low-level networking and performance tuning
-- Distributed systems design and microservice architecture
-- Observability and operational resilience
-- Containerized and cloud-native infrastructure
-- Unreal Engine multiplayer integration and gameplay systems
-- Large-scale load testing, profiling, and simulation
-- Global data models and consistency strategies
+Just as importantly, the project strengthend my architectural chops and product ownership. Asking the hard questions and balancing performance, reliability, cost efficiency, developer experience, and long-term sustainability.
 
-Just as importantly, the project taught me to think like an owner. Asking the hard questions and balancing performance, reliability, cost efficiency, developer experience, and long-term sustainability.
-
-This framework is not the final version; it is the foundation on which I plan to continue building. Over time, I intend to expand it to include social features, a more robust matchmaking system, and a seasonal progression, web dashboard for moderation and managing the content pipeline. Each step pushing the entire system closer to the demands of a AAA live-service title.
+This framework is not the final version; it is the foundation on which I plan to continue building. Over time, I intend to expand it to include social features, a more robust matchmaking system, and a seasonal progression, web dashboard for moderation and managing the content pipeline. Each step pushing the entire system closer to the demands of a global live-service title.
 
 More than anything, it has reinforced my passion for creating high-performance online experiences—and it has positioned me to meaningfully contribute to the next generation of multiplayer games.
