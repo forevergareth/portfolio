@@ -35,8 +35,8 @@ The core challenge I set for myself was simple to articulate but extremely deman
 To answer this, I needed to solve a set of problems that normally require large teams:
 - **How do you design a real-time communication layer between Unreal Engine and backend services with predictable latency and high throughput?**
 - **How do you architect a microservice ecosystem for global scale that remains resilient to partial failures, and scales horizontally?**
-- **How do you simulate the scale tens or hundreds of thousands of players without access to enterprise-grade load-testing platforms?**
-- **How do you build observability for latency, throughput, RPC timing, service health, and distributed tracing without relying on third-party SaaS?**
+- **How do you simulate the scale of tens of thousands of players without access to a large pool of resources?**
+- **How do you build an observability stack for latency, throughput, service health, and distributed tracing?**
 - **How do you enable global scale in storage, synchronization, regional clusters, and player state consistency?**
 - **How do you integrate monetization and persistent progression in a way that feels seamless to Unreal Engine players?**
 
@@ -120,18 +120,70 @@ This explicit control over data placement allowed me to optimize for the access 
 
 Even without deploying multiple physical regions in production, the architecture is **region-ready by design**.
 
-### Monetization and Gameplay Integration
+### Unified Player Accounts and Authentication
 
-I built a full store service integrated with Stripe, enabling real-money purchases of currency bundles and cosmetic items. The flow includes backend checkout session generation, webhook fulfillment, message-bus event propagation, and real-time in-game notification to the player in Unreal Engine.
+Cross-platform identity is a common feature players come to expect for modern live-service games. They expect to link their Steam, Epic, PlayStation, or Xbox accounts and retain progression and purchases across devices.
 
-This mimics production monetization workflows in modern live-service titles and demonstrates how tightly gameplay systems can integrate with backend event streams.
+<!-- TODO: Add screenshot showing login/account linking UI -->
+![Player Account Authentication Flow](/img/unreal-engine-live-service-framework/r3-dev-01.png)
 
-Key features include:
+I leveraged **Unreal's Online Subsystem** abstraction to integrate with **Steam** and **Epic Games** identity providers. On the client side, this meant implementing platform-specific login flows that retrieve authentication tickets. On the backend, I built an **OAuth 2.0-based account service** that validates these tickets against platform APIs, issues JWT tokens, and manages account linking.
 
-- **Microtransactions and Fulfillment**: Integrated Stripe for secure payments, generating checkout URLs from the Unreal client. Webhooks trigger fulfillment via RabbitMQ, granting virtual currency or cosmetics in milliseconds through real-time TCP notifications. Cosmetics are managed via Unreal primary data assets.
-- **Unified Player Accounts**: Leveraged Unreal's online subsystems for Steam and Epic Games, enabling platform-agnostic authentication. The backend validates tickets, supports account linking/creation, and includes fallback username/password for testing—ensuring cross-platform persistence.
-- **Progression and Equipment**: Server-validated XP and unlocks via server-to-server communication, with safeguards against tampering to maintain fair play.
-- **Matchmaking and Server Provisioning**: Custom system inspired by OpenMatch and Agones, provisioning dedicated servers via Docker/Kubernetes drivers. Supports mock, Docker, and future Kubernetes modes for regional scaling, with security like random passwords and port allocation.
+The account service handles several edge cases critical to production systems:
+- **Account Creation vs. Linking**: First-time players automatically create accounts; returning players on new platforms can link to existing accounts.
+- **Fallback Authentication**: Username/password login for development and testing environments where platform SDKs aren't available.
+- **Token Refresh**: Short-lived access tokens with refresh token rotation to minimize exposure from compromised credentials.
+
+This architecture ensures a player's identity, inventory, and progression persist regardless of which platform or device they use to play.
+
+### Microtransactions and Store Integration
+
+Monetization infrastructure must be secure, auditable, and seamlessly integrated into the gameplay experience. I built a full store service backed by **Stripe** for payment processing.
+
+![In-Game Store and Checkout Flow](/img/unreal-engine-live-service-framework/r3-dev-02.png)
+
+The purchase flow works as follows:
+1. The **Unreal client** requests a checkout session from the store service via rest API's.
+2. The **store service** generates a Stripe Checkout URL with the selected item and the **Unreal Client** redirects the player to Stripe's hosted payment page.
+3. Upon successful payment, **Stripe webhooks** notify the store service, which publishes a fulfillment event to **RabbitMQ** while the various services consumes the event and credits the player's account.
+5. A **real-time TCP notification** is pushed to the player's game client, updating their inventory instantly.
+
+Cosmetic items are defined as **Unreal Primary Data Assets**, enabling designers to manage item metadata, visuals, and categorization directly in the editor. The backend maintains ownership records, ensuring the client displays only what the player legitimately owns.
+
+### Progression and Equipment Systems
+
+Progression systems must be **server-authoritative** to prevent cheating while remaining responsive enough to feel rewarding. I implemented an XP and leveling system where all state mutations occur on the backend.
+
+![Player Progression and Equipment Interface](/img/unreal-engine-live-service-framework/r3-dev-03.png)
+
+When a match concludes, the **dedicated server** reports match results directly to the **progression service** via authenticated server-to-server API calls. The progression service calculates XP gains, checks for level-ups, and unlocks any rewards tied to the new level. These updates propagate to the player through the real-time gateway.
+
+I built a **CommonUI-based menu interface** that displays:
+- Current level and XP progress toward the next level
+- XP requirements per level with visual progression bars
+- Unlockable rewards at each level threshold
+- Equipment loadout management with server-validated selections
+
+This separation ensures that even if the client is compromised, progression state remains trustworthy. The client is purely a view layer for data owned by the backend.
+
+### Matchmaking and Dedicated Server Provisioning
+
+Matchmaking and server provisioning are among the most operationally complex systems in live-service games. I designed a custom matchmaking system inspired by **OpenMatch** and **Agones**, but tailored for my infrastructure constraints.
+
+![Matchmaking and Server Provisioning](/img/unreal-engine-live-service-framework/r3-dev-04.png)
+
+The matchmaking service supports multiple provisioning drivers:
+- **Mock Driver**: Returns fake server details for local development and unit testing.
+- **Docker Driver**: Spins up dedicated server containers on-demand for integration testing and small-scale deployments.
+- **Kubernetes Driver**: Provisions dedicated server pods in specific regions, enabling geographic matchmaking and regional scaling.
+
+When a match is formed, the provisioner:
+1. Selects an appropriate region based on player region.
+2. Allocates a dedicated server instance with a **randomly generated connection password**.
+3. Assigns a **dynamic port** from the available pool.
+4. Returns connection details to matched players via the real-time gateway.
+
+This architecture allows the system to scale from local development to multi-region production deployments without changing application code, only the provisioning driver configuration changes.
 
 ---
 
