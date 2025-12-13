@@ -124,7 +124,6 @@ Even without deploying multiple physical regions in production, the architecture
 
 Cross-platform identity is a common feature players come to expect for modern live-service games. They expect to link their Steam, Epic, PlayStation, or Xbox accounts and retain progression and purchases across devices.
 
-<!-- TODO: Add screenshot showing login/account linking UI -->
 ![Player Account Authentication Flow](/img/unreal-engine-live-service-framework/r3-dev-01.png)
 
 I leveraged **Unreal's Online Subsystem** abstraction to integrate with **Steam** and **Epic Games** identity providers. On the client side, this meant implementing platform-specific login flows that retrieve authentication tickets. On the backend, I built an **OAuth 2.0-based account service** that validates these tickets against platform APIs, issues JWT tokens, and manages account linking.
@@ -140,7 +139,7 @@ This architecture ensures a player's identity, inventory, and progression persis
 
 Monetization infrastructure must be secure, auditable, and seamlessly integrated into the gameplay experience. I built a full store service backed by **Stripe** for payment processing.
 
-![In-Game Store and Checkout Flow](/img/unreal-engine-live-service-framework/r3-dev-02.png)
+![In-Game Store and Checkout Flow](/img/unreal-engine-live-service-framework/unreal-engine-microtransaction-demo.gif)
 
 The purchase flow works as follows:
 1. The **Unreal client** requests a checkout session from the store service via rest API's.
@@ -154,7 +153,7 @@ Cosmetic items are defined as **Unreal Primary Data Assets**, enabling designers
 
 Progression systems must be **server-authoritative** to prevent cheating while remaining responsive enough to feel rewarding. I implemented an XP and leveling system where all state mutations occur on the backend.
 
-![Player Progression and Equipment Interface](/img/unreal-engine-live-service-framework/r3-dev-03.png)
+![Player Progression and Equipment Interface](/img/unreal-engine-live-service-framework/r3-dev-10.png)
 
 When a match concludes, the **dedicated server** reports match results directly to the **progression service** via authenticated server-to-server API calls. The progression service calculates XP gains, checks for level-ups, and unlocks any rewards tied to the new level. These updates propagate to the player through the real-time gateway.
 
@@ -170,7 +169,7 @@ This separation ensures that even if the client is compromised, progression stat
 
 Matchmaking and server provisioning are among the most operationally complex systems in live-service games. I designed a custom matchmaking system inspired by **OpenMatch** and **Agones**, but tailored for my infrastructure constraints.
 
-![Matchmaking and Server Provisioning](/img/unreal-engine-live-service-framework/r3-dev-04.png)
+![Matchmaking and Server Provisioning](/img/unreal-engine-live-service-framework/unreal-engine-matchmaking-demo-2.gif)
 
 The matchmaking service supports multiple provisioning drivers:
 - **Mock Driver**: Returns fake server details for local development and unit testing.
