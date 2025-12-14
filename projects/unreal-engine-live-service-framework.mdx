@@ -22,27 +22,27 @@ teamSize: "Solo"
 ## Overview
 This project represents a tangible expression of my passion for large-scale, real-time online games and my engineering background building distributed systems at scale. **My goal was to design and implement an end-to-end live-service framework capable of supporting the architecture, runtime behavior, and operational demands of a modern multiplayer title.**
 
-Rather than focus on a single subsystem, **I set out to build the full software development stack**: an **Unreal Engine game client**, a **highly scalable microservice backend**, a **global-ready data layer**, automated **CI/CD pipelines**, **Kubernetes-based orchestration**, **observability infrastructure**, and the tooling required to test, validate, and push the system toward global scale workloads.
+Rather than focus on a single subsystem, I set out to build the full software development stack: an **Unreal Engine** game client, a highly scalable **microservice backend**, a **global-ready data layer**, automated **CI/CD** pipelines, **Kubernetes** orchestration, **observability** infrastructure, and the tooling required to test, validate, and push the system toward global scale workloads.
 
-The end result is a functioning live-service ecosystem that mirrors the architectural principles, engineering discipline, and runtime characteristics expected in production environments. The system supports real-time interactions over TCP, scalable microservices, regional deployments, global databases, payments, inventory, cosmetics, progression, and a full operability suite for diagnosing performance, latency, and system health.
+The end result is a functioning live-service ecosystem that mirrors the architectural principles, engineering discipline, and runtime characteristics expected in production environments. The system supports real-time interactions over **TCP**, scalable microservices, regional deployments, global databases, payments, inventory, cosmetics, progression, and a full observability suite for diagnosing performance, latency, and system health.
 
 ---
 
 ## The Challenge
 
-The core challenge I set for myself was simple to articulate but extremely demanding to execute: **Could I, as one engineer, build a fully scalable, globally capable live-service architecture from scratch that could realistically support hundreds of thousands of concurrent players?**
+The core challenge I set for myself was simple to articulate but extremely demanding to execute: **Could I, as one engineer, build a fully scalable, globally capable live-service architecture from scratch that could realistically support tens of thousands of concurrent players?**
 
 To answer this, I needed to solve a set of problems that normally require large teams:
-- **How do you design a real-time communication layer between Unreal Engine and backend services with predictable latency and high throughput?**
-- **How do you architect a microservice ecosystem for global scale that remains resilient to partial failures, and scales horizontally?**
-- **How do you simulate the scale of tens of thousands of players without access to a large pool of resources?**
-- **How do you build an observability stack for latency, throughput, service health, and distributed tracing?**
-- **How do you enable global scale in storage, synchronization, regional clusters, and player state consistency?**
-- **How do you integrate monetization and persistent progression in a way that feels seamless to Unreal Engine players?**
+- How do you design a real-time communication layer between Unreal Engine and backend services with predictable latency and high throughput?
+- How do you architect a microservice ecosystem for global scale that remains resilient to partial failures, and scales horizontally?
+- How do you simulate the scale of tens of thousands of players without access to a large pool of resources?
+- How do you build an observability stack for latency, throughput, service health, and distributed tracing?
+- How do you enable global scale in storage, synchronization, regional clusters, and player state consistency?
+- How do you integrate monetization and persistent progression in a way that feels seamless to Unreal Engine players?
 
 These were not theoretical challenges. Each one required deep system-level engineering, careful architectural planning, load testing, and continuous refinement.
 
-By treating this like a real production pipeline with CI/CD, containerized builds, automated dedicated server packaging, Kubernetes rollout strategies, and environment-based configuration, I recreated the pressures and expectations of a live operating game.
+By treating this like a real production pipeline with CI/CD, containerized builds, automated dedicated server packaging, and environment-based configuration, I recreated the pressures and expectations of a live operating game.
 
 This project became a long-form technical proving ground: a place to demonstrate my mastery of networking, distributed systems, and gameplay integration, but also a space to explore new techniques, broaden my depth and scope.
 
@@ -119,8 +119,6 @@ The architectural power of CockroachDB lies in its native multi-region primitive
 - **Regional Tables** for player-specific, high-write-throughput data ie. inventories, match history, progression state. By pinning this data to the player's home region, I minimized write latency while maintaining strong consistency guarantees.
 
 This explicit control over data placement allowed me to optimize for the access patterns that matter: **fast reads globally, fast writes locally**. A European player's inventory updates stay in Frankfurt with single-digit millisecond commits, while the cosmetic store they browse is served from a local replica without cross-Atlantic round trips.
-
-Even without deploying multiple physical regions in production, the architecture is **region-ready by design**.
 
 ### Unified Player Accounts and Authentication
 
