@@ -24,7 +24,7 @@ This project represents a tangible expression of my passion for large-scale, rea
 
 Rather than focus on a single subsystem, I set out to build the full software development stack: an **Unreal Engine** game client, a highly scalable **microservice backend**, a **global-ready data layer**, automated **CI/CD** pipelines, **Kubernetes** orchestration, **observability** infrastructure, and the tooling required to test, validate, and push the system toward global scale workloads.
 
-The end result is a functioning live-service ecosystem that mirrors the architectural principles, engineering discipline, and runtime characteristics expected in production environments. The system supports real-time interactions over **TCP**, scalable microservices, regional deployments, global databases, payments, inventory, cosmetics, progression, and a full observability suite for diagnosing performance, latency, and system health.
+The end result is a functioning live-service ecosystem that mirrors the architectural principles, engineering discipline, and runtime characteristics expected in production environments. The system supports real-time interactions over **TCP**, scalable microservices with **Go**, regional deployments, global databases with **CockroachDB**, payments with **Stripe**, Inventory, Cosmetics, Progression, and a full observability suite with **Grafana** and **Prometheus** for diagnosing performance, latency, and system health.
 
 ---
 
@@ -33,18 +33,16 @@ The end result is a functioning live-service ecosystem that mirrors the architec
 The core challenge I set for myself was simple to articulate but extremely demanding to execute: **Could I, as one engineer, build a fully scalable, globally capable live-service architecture from scratch that could realistically support tens of thousands of concurrent players?**
 
 To answer this, I needed to solve a set of problems that normally require large teams:
-- How do you design a real-time communication layer between Unreal Engine and backend services with predictable latency and high throughput?
-- How do you architect a microservice ecosystem for global scale that remains resilient to partial failures, and scales horizontally?
-- How do you simulate the scale of tens of thousands of players without access to a large pool of resources?
-- How do you build an observability stack for latency, throughput, service health, and distributed tracing?
-- How do you enable global scale in storage, synchronization, regional clusters, and player state consistency?
-- How do you integrate monetization and persistent progression in a way that feels seamless to Unreal Engine players?
+- Design a real-time communication layer between Unreal Engine and backend services with predictable latency and high throughput.
+- Architect a microservice ecosystem for global scale that remains resilient to partial failures, and scales horizontally.
+- Simulate the scale of tens of thousands of players without access to a large pool of resources.
+- Build an observability stack for latency, throughput, service health, and distributed tracing.
+- Global scale database storage with regional clusters, and player state consistency.
+- Integrate monetization and persistent progression in a way that feels seamless to players.
 
 These were not theoretical challenges. Each one required deep system-level engineering, careful architectural planning, load testing, and continuous refinement.
 
 By treating this like a real production pipeline with CI/CD, containerized builds, automated dedicated server packaging, and environment-based configuration, I recreated the pressures and expectations of a live operating game.
-
-This project became a long-form technical proving ground: a place to demonstrate my mastery of networking, distributed systems, and gameplay integration, but also a space to explore new techniques, broaden my depth and scope.
 
 ---
 ## Implementation and Strategy
@@ -118,7 +116,7 @@ The architectural power of CockroachDB lies in its native multi-region primitive
 - **Global Tables** for data requiring low-latency reads worldwide ie. cosmetic catalogs, store configurations, and game metadata. These tables replicate across all regions, ensuring any player anywhere reads local data instantly.
 - **Regional Tables** for player-specific, high-write-throughput data ie. inventories, match history, progression state. By pinning this data to the player's home region, I minimized write latency while maintaining strong consistency guarantees.
 
-This explicit control over data placement allowed me to optimize for the access patterns that matter: **fast reads globally, fast writes locally**. A European player's inventory updates stay in Frankfurt with single-digit millisecond commits, while the cosmetic store they browse is served from a local replica without cross-Atlantic round trips.
+This explicit control over data placement allowed me to optimize for the access patterns that matter: **fast reads globally, fast writes locally**. An European player's inventory updates stay in Frankfurt with single-digit millisecond commits, while the cosmetic store they browse is served from a local replica without cross-Atlantic round trips.
 
 ### Unified Player Accounts and Authentication
 
@@ -194,4 +192,4 @@ Just as importantly, the project strengthend my architectural chops and product 
 
 This framework is not the final version; it is the foundation on which I plan to continue building. Over time, I intend to expand it to include social features, a more robust matchmaking system, and a seasonal progression, web dashboard for moderation and managing the content pipeline. Each step pushing the entire system closer to the demands of a global live-service title.
 
-More than anything, it has reinforced my passion for creating high-performance online experiences—and it has positioned me to meaningfully contribute to the next generation of multiplayer games.
+More than anything, it has reinforced my passion for creating high-performance online experiences and it has positioned me to meaningfully contribute to the next generation of multiplayer games.
