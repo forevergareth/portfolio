@@ -120,7 +120,7 @@ This explicit control over data placement allowed me to optimize for the access 
 
 Cross-platform identity is a common feature players come to expect for modern live-service games. They expect to link their Steam, Epic, PlayStation, or Xbox accounts and retain progression and purchases across devices.
 
-![Player Account Authentication Flow](/img/unreal-engine-live-service-framework/r3-dev-01.png)
+![Player Account Authentication Flow](/img/unreal-engine-live-service-framework/r3-dev-21.png)
 
 I leveraged **Unreal's Online Subsystem** abstraction to integrate with **Steam** and **Epic Games** identity providers. On the client side, this meant implementing platform-specific login flows that retrieve authentication tickets. On the backend, I built an **OAuth 2.0-based account service** that validates these tickets against platform APIs, issues JWT tokens, and manages account linking.
 
