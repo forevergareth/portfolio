@@ -93,6 +93,8 @@ Once built, the images are published to **GitHub Container Registry** and can be
 
 Live-service systems fail if they cannot be measured. To match industry standards, I built an observability stack composed of **Prometheus** for metrics, **Loki** for logs, **Grafana** for visualization, and **Tempo** for distributed tracing.
 
+![Observability Stack](/img/unreal-engine-live-service-framework/unreal-engine-observability-stack.png)
+
 Paired with **OpenTelemetry** instrumentation across all backend services, I gained full visibility into request latency, error propagation, cache behavior, message queue throughput, gateway performance, and database query analysis.
 
 This visibility became crucial when pushing toward higher concurrency or diagnosing bottlenecks in the TCP gateway under large simulated loads.
