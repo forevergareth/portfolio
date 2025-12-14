@@ -151,7 +151,7 @@ Progression systems must be **server-authoritative** to prevent cheating while r
 
 ![Player Progression and Equipment Interface](/img/unreal-engine-live-service-framework/r3-dev-10.png)
 
-When a match concludes, the **dedicated server** reports match results directly to the **progression service** via authenticated server-to-server API calls. The progression service calculates XP gains, checks for level-ups, and unlocks any rewards tied to the new level. These updates propagate to the player through the real-time gateway.
+When a match concludes, the **dedicated server** reports match results directly to the **player service** via authenticated server-to-server API calls. The backend servers validates XP gains, level-ups, and unlocks rewards tied to the new level. These updates propagate to the player in realtime.
 
 I built a **CommonUI-based menu interface** that displays:
 - Current level and XP progress toward the next level
