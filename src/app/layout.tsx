@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
 import { Inter as FontSans } from "next/font/google";
 import PlausibleProvider from "next-plausible";
+import { Analytics } from "@vercel/analytics/next"
 import "./globals.css";
 
 const fontSans = FontSans({
@@ -62,7 +63,7 @@ export default function RootLayout({
           fontSans.variable
         )}
       >
-        <PlausibleProvider domain="forevergareth.com" customDomain="https://plausible.kulchaone.com">
+        <PlausibleProvider domain="forevergareth.com">
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
             <TooltipProvider delayDuration={0}>
               {children}
@@ -70,6 +71,7 @@ export default function RootLayout({
             </TooltipProvider>
           </ThemeProvider>
         </PlausibleProvider>
+        <Analytics />
       </body>
     </html>
   );
